@@ -4,8 +4,10 @@ import com.seojs.salesmanagement.domain.category.Category;
 import com.seojs.salesmanagement.domain.order.Order;
 import jakarta.persistence.*;
 import lombok.Builder;
+import lombok.Getter;
 
 @Entity
+@Getter
 public class Product {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

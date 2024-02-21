@@ -7,12 +7,14 @@ import com.seojs.salesmanagement.domain.product.ProductStatus;
 import com.seojs.salesmanagement.domain.shipment.Shipment;
 import jakarta.persistence.*;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Getter
 @NoArgsConstructor
 public class Order {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,7 +34,8 @@ public class Order {
     @JoinColumn(name = "payment_id")
     private Payment payment;
 
-    @OneToOne(cascade = CascadeType.PERSIST)
+    //shipment 변경 때문 ?
+    @OneToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "shipment_id")
     private Shipment shipment;
 

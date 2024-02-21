@@ -2,9 +2,11 @@ package com.seojs.salesmanagement.domain.payment;
 
 import com.seojs.salesmanagement.domain.order.Order;
 import jakarta.persistence.*;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
+@Getter
 @NoArgsConstructor
 public class Payment {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
