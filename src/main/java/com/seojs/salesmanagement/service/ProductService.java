@@ -5,6 +5,7 @@ import com.seojs.salesmanagement.domain.product.Product;
 import com.seojs.salesmanagement.domain.product.ProductRepository;
 import com.seojs.salesmanagement.domain.product.dto.ProductResponseDto;
 import com.seojs.salesmanagement.domain.product.dto.ProductSaveDto;
+import com.seojs.salesmanagement.domain.product.dto.ProductUpdateDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +22,9 @@ public class ProductService {
     public Long save(ProductSaveDto productSaveDto) {
         Product product = Product.builder()
                 .productName(productSaveDto.getProductName())
+                .description(productSaveDto.getDescription())
                 .price(productSaveDto.getPrice())
+                .quantity(productSaveDto.getQuantity())
                 .category(productSaveDto.getCategory())
                 .build();
 
@@ -50,7 +53,14 @@ public class ProductService {
     }
 
     @Transactional
-    public void delete(Product product) {
+    public void delete(Long id) {
+        Product product = productRepository.findById(id).orElseThrow();
         productRepository.delete(product);
+    }
+
+    @Transactional
+    public void update(Long id, ProductUpdateDto productUpdateDto) {
+        Product product = productRepository.findById(id).orElseThrow();
+        product.update(productUpdateDto.getQuantity(), productUpdateDto.getPrice());
     }
 }

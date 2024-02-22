@@ -1,6 +1,6 @@
 package com.seojs.salesmanagement.domain.customer;
 
-import com.seojs.salesmanagement.domain.order.Order;
+import com.seojs.salesmanagement.domain.orders.Orders;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,11 +24,11 @@ public class Customer {
     private Role role;
 
     @OneToMany(mappedBy = "customer", fetch = FetchType.LAZY)
-    private List<Order> orders = new ArrayList<>();
+    private List<Orders> orders = new ArrayList<>();
 
     //연관관계
-    public void addOrder(Order order) {
-        this.orders.add(order);
+    public void addOrder(Orders orders) {
+        this.orders.add(orders);
     }
 
     @Builder

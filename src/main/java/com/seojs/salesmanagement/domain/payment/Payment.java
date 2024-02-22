@@ -1,7 +1,8 @@
 package com.seojs.salesmanagement.domain.payment;
 
-import com.seojs.salesmanagement.domain.order.Order;
+import com.seojs.salesmanagement.domain.orders.Orders;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -16,8 +17,9 @@ public class Payment {
     private PayMethod payMethod;
 
     @OneToOne(mappedBy = "payment")
-    private Order order;
+    private Orders orders;
 
+    @Builder
     public Payment(Integer amount, PayMethod payMethod) {
         this.amount = amount;
         this.payMethod = payMethod;

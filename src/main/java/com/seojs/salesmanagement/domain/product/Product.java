@@ -1,7 +1,7 @@
 package com.seojs.salesmanagement.domain.product;
 
 import com.seojs.salesmanagement.domain.category.Category;
-import com.seojs.salesmanagement.domain.order.Order;
+import com.seojs.salesmanagement.domain.orderproduct.OrderProduct;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,26 +12,34 @@ public class Product {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String productName;
+    private String description;
     private Integer price;
+    private Integer quantity;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
 
-    @ManyToOne
-    @JoinColumn(name = "order_id")
-    private Order order;
+//    @OneToMany(mappedBy = "product")
+//    private List<OrderProduct> orderProducts = new ArrayList<>();
 
     //연관관계
-    public void setOrder(Order order) {
-        this.order = order;
-        order.addProduct(this);
+    public void addOrderProducts(OrderProduct orderProducts) {
+        //this.orderProducts.add(orderProducts);
+        this.quantity -= orderProducts.getQuantity();
+    }
+
+    public void update(Integer quantity, Integer price) {
+        this.quantity = quantity;
+        this.price = price;
     }
 
     @Builder
-    public Product(String productName, Integer price, Category category) {
+    public Product(String productName, String description, Integer price, Integer quantity, Category category) {
         this.productName = productName;
+        this.description = description;
         this.price = price;
+        this.quantity = quantity;
         this.category = category;
     }
 }
