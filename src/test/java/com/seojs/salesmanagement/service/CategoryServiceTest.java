@@ -1,6 +1,7 @@
 package com.seojs.salesmanagement.service;
 
 import com.seojs.salesmanagement.domain.category.Category;
+import com.seojs.salesmanagement.exception.CategoryNotFoundEx;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -9,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @Transactional
@@ -67,5 +69,10 @@ class CategoryServiceTest {
         assertThat(all.size()).isEqualTo(2);
         assertThat(all.get(0).getName()).isEqualTo("의류");
         assertThat(all.get(1).getName()).isEqualTo("잡화");
+    }
+
+    @Test
+    void 카테고리_없음_예외처리_테스트() {
+        assertThatThrownBy(() -> categoryService.findById(1L)).isInstanceOf(CategoryNotFoundEx.class);
     }
 }

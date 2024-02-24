@@ -9,6 +9,8 @@ import com.seojs.salesmanagement.domain.orders.dto.OrdersResponseDto;
 import com.seojs.salesmanagement.domain.payment.PayMethod;
 import com.seojs.salesmanagement.domain.product.dto.ProductSaveDto;
 import com.seojs.salesmanagement.domain.shipment.ShipmentStatus;
+import com.seojs.salesmanagement.exception.OrderNotFoundEx;
+import com.seojs.salesmanagement.exception.OrderStatusEx;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @Transactional
@@ -192,5 +195,28 @@ class OrderServiceTest {
         List<OrdersResponseDto> all = orderService.findByCustomerIdAndOrderStatus(customerId, OrderStatus.ORDERED);
 
         assertThat(all.get(0).getShipment().getShipmentStatus()).isEqualTo(ShipmentStatus.SHIPPING);
+    }
+
+    @Test
+    void 주문없음_예외처리_테스트() {
+        assertThatThrownBy(() -> orderService.findById(1L)).isInstanceOf(OrderNotFoundEx.class);
+    }
+
+    @Test
+    void 주문상태_예외처리_테스트() {
+        OrderProductSaveDto orderProductSaveDto = OrderProductSaveDto.builder()
+                .customerId(customerId)
+                .productId(productId)
+                .quantity(2)
+                .build();
+
+        //개당 10,000원 짜리 2개 씩 2번
+        Long ordersId = orderProductService.save(orderProductSaveDto);
+
+        orderService.updateOrdered(ordersId, PayMethod.KAKAOPAY);
+
+        orderService.updateShipment(ordersId, ShipmentStatus.SHIPPING);
+
+        assertThatThrownBy(() -> orderService.updateCancled(ordersId)).isInstanceOf(OrderStatusEx.class);
     }
 }

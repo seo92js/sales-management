@@ -9,6 +9,8 @@ import com.seojs.salesmanagement.domain.payment.PayMethod;
 import com.seojs.salesmanagement.domain.payment.Payment;
 import com.seojs.salesmanagement.domain.product.ProductRepository;
 import com.seojs.salesmanagement.domain.shipment.ShipmentStatus;
+import com.seojs.salesmanagement.exception.OrderNotFoundEx;
+import com.seojs.salesmanagement.exception.OrderStatusEx;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,7 +27,7 @@ public class OrderService {
 
     @Transactional
     public OrdersResponseDto findById(Long id) {
-        Orders orders = ordersRepository.findById(id).orElseThrow();
+        Orders orders = ordersRepository.findById(id).orElseThrow(() -> new OrderNotFoundEx("주문이 없습니다. id = " + id));
 
         return new OrdersResponseDto(orders);
     }
@@ -46,7 +48,7 @@ public class OrderService {
 
     @Transactional
     public void updateCancled(Long id) {
-        Orders orders = ordersRepository.findById(id).orElseThrow();
+        Orders orders = ordersRepository.findById(id).orElseThrow(() -> new OrderNotFoundEx("주문이 없습니다. id = " + id));
 
         checkOrderStatus(orders);
 
@@ -55,7 +57,7 @@ public class OrderService {
 
     @Transactional
     public void updateOrdered(Long id, PayMethod payMethod) {
-        Orders orders = ordersRepository.findById(id).orElseThrow();
+        Orders orders = ordersRepository.findById(id).orElseThrow(() -> new OrderNotFoundEx("주문이 없습니다. id = " + id));
 
         Payment payment = Payment.builder()
                 .amount(orders.getTotalPrice())
@@ -68,14 +70,14 @@ public class OrderService {
 
     @Transactional
     public void updateShipment(Long id, ShipmentStatus shipmentStatus) {
-        Orders orders = ordersRepository.findById(id).orElseThrow();
+        Orders orders = ordersRepository.findById(id).orElseThrow(() -> new OrderNotFoundEx("주문이 없습니다. id = " + id));
 
         orders.updateShipment(shipmentStatus);
     }
 
     private void checkOrderStatus(Orders orders) {
-        if (orders.getOrderStatus() != OrderStatus.ORDERED) {
-            //throw 해야 함
+        if (orders.getOrderStatus() == OrderStatus.DELIVERED) {
+            throw new OrderStatusEx("이미 배송이 시작되었습니다.");
         }
     }
 }

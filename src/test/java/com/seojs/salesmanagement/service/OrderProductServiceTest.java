@@ -6,6 +6,7 @@ import com.seojs.salesmanagement.domain.customer.dto.CustomerResponseDto;
 import com.seojs.salesmanagement.domain.customer.dto.CustomerSaveDto;
 import com.seojs.salesmanagement.domain.orderproduct.dto.OrderProductSaveDto;
 import com.seojs.salesmanagement.domain.product.dto.ProductSaveDto;
+import com.seojs.salesmanagement.exception.NotInStockEx;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @Transactional
@@ -91,5 +93,17 @@ class OrderProductServiceTest {
         assertThat(byId.getOrders().get(0).getOrderProducts().size()).isEqualTo(2);
         assertThat(byId.getOrders().get(0).getQuantity()).isEqualTo(4);
         assertThat(byId.getOrders().get(0).getTotalPrice()).isEqualTo(40000);
+    }
+
+    @Test
+    void 재고없음_예외처리_테스트() {
+        //주문
+        OrderProductSaveDto orderProductSaveDto = OrderProductSaveDto.builder()
+                .customerId(customerId)
+                .productId(productId)
+                .quantity(100)
+                .build();
+
+        assertThatThrownBy(() -> orderProductService.save(orderProductSaveDto)).isInstanceOf(NotInStockEx.class);
     }
 }

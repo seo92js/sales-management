@@ -3,7 +3,6 @@ package com.seojs.salesmanagement.domain.orders;
 import com.seojs.salesmanagement.domain.customer.Customer;
 import com.seojs.salesmanagement.domain.orderproduct.OrderProduct;
 import com.seojs.salesmanagement.domain.payment.Payment;
-import com.seojs.salesmanagement.domain.product.Product;
 import com.seojs.salesmanagement.domain.shipment.Shipment;
 import com.seojs.salesmanagement.domain.shipment.ShipmentStatus;
 import jakarta.persistence.*;
@@ -53,6 +52,7 @@ public class Orders {
 
     public void updateShipment(ShipmentStatus shipmentStatus) {
         this.shipment.update(shipmentStatus);
+        this.orderStatus = OrderStatus.DELIVERED;
     }
 
     public void addOrderProducts(OrderProduct orderProducts) {

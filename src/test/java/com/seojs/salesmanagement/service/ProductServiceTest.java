@@ -4,6 +4,8 @@ import com.seojs.salesmanagement.domain.category.Category;
 import com.seojs.salesmanagement.domain.product.dto.ProductResponseDto;
 import com.seojs.salesmanagement.domain.product.dto.ProductSaveDto;
 import com.seojs.salesmanagement.domain.product.dto.ProductUpdateDto;
+import com.seojs.salesmanagement.exception.ProductDuplicateEx;
+import com.seojs.salesmanagement.exception.ProductNotFoundEx;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @Transactional
@@ -211,5 +214,25 @@ class ProductServiceTest {
         all = productService.findAll();
         assertThat(all.get(0).getQuantity()).isEqualTo(10);
         assertThat(all.get(0).getPrice()).isEqualTo(20000);
+    }
+
+    @Test
+    void 제품_중복_예외처리_테스트() {
+        Category category = categoryService.findById(categoryId);
+
+        ProductSaveDto productSaveDto = ProductSaveDto.builder()
+                .productName("나이키")
+                .price(10000)
+                .category(category)
+                .build();
+
+        Long savedId = productService.save(productSaveDto);
+
+        assertThatThrownBy(() -> productService.save(productSaveDto)).isInstanceOf(ProductDuplicateEx.class);
+    }
+
+    @Test
+    void 제품_없음_예외처리_테스트() {
+        assertThatThrownBy(() -> productService.findById(1L)).isInstanceOf(ProductNotFoundEx.class);
     }
 }

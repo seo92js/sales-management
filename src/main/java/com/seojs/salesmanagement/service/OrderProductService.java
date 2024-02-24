@@ -10,6 +10,9 @@ import com.seojs.salesmanagement.domain.orders.Orders;
 import com.seojs.salesmanagement.domain.orders.OrdersRepository;
 import com.seojs.salesmanagement.domain.product.Product;
 import com.seojs.salesmanagement.domain.product.ProductRepository;
+import com.seojs.salesmanagement.exception.CustomerNotFoundEx;
+import com.seojs.salesmanagement.exception.NotInStockEx;
+import com.seojs.salesmanagement.exception.ProductNotFoundEx;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +31,7 @@ public class OrderProductService {
          * basket 상태의 Orders가 없으면 생성
          */
 
-        Customer customer = customerRepository.findById(orderProductSaveDto.getCustomerId()).orElseThrow();
+        Customer customer = customerRepository.findById(orderProductSaveDto.getCustomerId()).orElseThrow(() -> new CustomerNotFoundEx("고객이 없습니다. id = " + orderProductSaveDto.getCustomerId()));
         Orders orders;
 
         if (customer.getOrders().stream().noneMatch(m -> m.getOrderStatus().equals(OrderStatus.BASKET))) {
@@ -41,7 +44,7 @@ public class OrderProductService {
                     .findFirst().get();
         }
 
-        Product product = productRepository.findById(orderProductSaveDto.getProductId()).orElseThrow();
+        Product product = productRepository.findById(orderProductSaveDto.getProductId()).orElseThrow(() -> new ProductNotFoundEx("제품이 없습니다. id = " + orderProductSaveDto.getProductId()));
 
         //수량 체크
         checkProductQuantity(product, orderProductSaveDto.getQuantity());
@@ -62,7 +65,7 @@ public class OrderProductService {
 
     private void checkProductQuantity(Product product, Integer orderQuantity) {
         if (product.getQuantity() < orderQuantity) {
-            //throw 해야 함
+            throw new NotInStockEx("재고가 부족합니다. 남은 수량 = " + product.getQuantity());
         }
     }
 }

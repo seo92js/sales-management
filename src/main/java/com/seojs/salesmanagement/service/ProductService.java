@@ -6,6 +6,8 @@ import com.seojs.salesmanagement.domain.product.ProductRepository;
 import com.seojs.salesmanagement.domain.product.dto.ProductResponseDto;
 import com.seojs.salesmanagement.domain.product.dto.ProductSaveDto;
 import com.seojs.salesmanagement.domain.product.dto.ProductUpdateDto;
+import com.seojs.salesmanagement.exception.ProductDuplicateEx;
+import com.seojs.salesmanagement.exception.ProductNotFoundEx;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +22,8 @@ public class ProductService {
 
     @Transactional
     public Long save(ProductSaveDto productSaveDto) {
+        checkDuplicateProduct(productSaveDto.getProductName());
+
         Product product = Product.builder()
                 .productName(productSaveDto.getProductName())
                 .description(productSaveDto.getDescription())
@@ -33,7 +37,7 @@ public class ProductService {
 
     @Transactional
     public ProductResponseDto findById(Long id) {
-        Product product = productRepository.findById(id).orElseThrow();
+        Product product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundEx("제품이 없습니다. id = " + id));
 
         return new ProductResponseDto(product);
     }
@@ -54,13 +58,21 @@ public class ProductService {
 
     @Transactional
     public void delete(Long id) {
-        Product product = productRepository.findById(id).orElseThrow();
+        Product product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundEx("제품이 없습니다. id = " + id));
         productRepository.delete(product);
     }
 
     @Transactional
     public void update(Long id, ProductUpdateDto productUpdateDto) {
-        Product product = productRepository.findById(id).orElseThrow();
+        Product product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundEx("제품이 없습니다. id = " + id));
         product.update(productUpdateDto.getQuantity(), productUpdateDto.getPrice());
+    }
+
+    private void checkDuplicateProduct(String productName) {
+        productRepository.findByProductName(productName).ifPresent(
+                existingProduct -> {
+                    throw new ProductDuplicateEx("중복된 제품이 있습니다. productName = " + productName);
+                }
+        );
     }
 }

@@ -4,6 +4,8 @@ import com.seojs.salesmanagement.domain.customer.Customer;
 import com.seojs.salesmanagement.domain.customer.CustomerRepository;
 import com.seojs.salesmanagement.domain.customer.dto.CustomerResponseDto;
 import com.seojs.salesmanagement.domain.customer.dto.CustomerSaveDto;
+import com.seojs.salesmanagement.exception.CustomerDupliacateEx;
+import com.seojs.salesmanagement.exception.CustomerNotFoundEx;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +20,8 @@ public class CustomerService {
 
     @Transactional
     public Long save(CustomerSaveDto customerSaveDto) {
+        checkDuplicateCustomer(customerSaveDto.getLoginId());
+
         Customer customer = Customer.builder()
                 .loginId(customerSaveDto.getLoginId())
                 .password(customerSaveDto.getPassword())
@@ -33,7 +37,7 @@ public class CustomerService {
 
     @Transactional
     public CustomerResponseDto findById(Long id) {
-        Customer customer = customerRepository.findById(id).orElseThrow();
+        Customer customer = customerRepository.findById(id).orElseThrow(() -> new CustomerNotFoundEx("고객이 없습니다. id = " + id));
 
         return new CustomerResponseDto(customer);
     }
@@ -43,5 +47,11 @@ public class CustomerService {
         return customerRepository.findAll().stream()
                 .map(CustomerResponseDto::new)
                 .collect(Collectors.toList());
+    }
+
+    private void checkDuplicateCustomer(String loginId) {
+        customerRepository.findByLoginId(loginId).ifPresent(
+                existCustomer -> {throw new CustomerDupliacateEx("중복된 고객이 있습니다. loginId = " + loginId);
+        });
     }
 }
