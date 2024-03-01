@@ -6,6 +6,9 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 public class Product {
@@ -20,8 +23,8 @@ public class Product {
     @JoinColumn(name = "category_id")
     private Category category;
 
-//    @OneToMany(mappedBy = "product")
-//    private List<OrderProduct> orderProducts = new ArrayList<>();
+    @OneToMany(mappedBy = "product")
+    private List<OrderProduct> orderProducts = new ArrayList<>();
 
     //연관관계
     public void addOrderProducts(OrderProduct orderProducts) {

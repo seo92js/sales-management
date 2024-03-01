@@ -108,7 +108,7 @@ class ProductServiceTest {
 
         Long savedId2 = productService.save(productSaveDto2);
 
-        List<ProductResponseDto> findProducts = productService.findByCategory(category);
+        List<ProductResponseDto> findProducts = productService.findByCategoryName(category.getName());
 
         assertThat(findProducts.size()).isEqualTo(2);
         assertThat(findProducts.get(0).getProductName()).isEqualTo(productName1);

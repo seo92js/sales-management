@@ -47,7 +47,7 @@ public class OrderService {
     }
 
     @Transactional
-    public void updateCancled(Long id) {
+    public void updateCanceled(Long id) {
         Orders orders = ordersRepository.findById(id).orElseThrow(() -> new OrderNotFoundEx("주문이 없습니다. id = " + id));
 
         checkOrderStatus(orders);

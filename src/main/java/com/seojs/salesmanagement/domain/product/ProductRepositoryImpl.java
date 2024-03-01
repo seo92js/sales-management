@@ -1,7 +1,6 @@
 package com.seojs.salesmanagement.domain.product;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.seojs.salesmanagement.domain.category.Category;
 import jakarta.persistence.EntityManager;
 
 import java.util.List;
@@ -18,10 +17,10 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom{
     }
 
     @Override
-    public List<Product> findByCategory(Category category) {
+    public List<Product> findByCategoryName(String categoryName) {
         return queryFactory
                 .selectFrom(product)
-                .where(product.category.eq(category))
+                .where(product.category.name.eq(categoryName))
                 .fetch();
     }
 }

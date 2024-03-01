@@ -156,7 +156,7 @@ class OrderServiceTest {
     }
 
     @Test
-    void updateCancled() {
+    void updateCanceled() {
         //주문
         OrderProductSaveDto orderProductSaveDto = OrderProductSaveDto.builder()
                 .customerId(customerId)
@@ -169,11 +169,11 @@ class OrderServiceTest {
 
         orderService.updateOrdered(ordersId, PayMethod.KAKAOPAY);
 
-        orderService.updateCancled(ordersId);
+        orderService.updateCanceled(ordersId);
 
-        List<OrdersResponseDto> cancles = orderService.findByCustomerIdAndOrderStatus(customerId, OrderStatus.CANCELED);
+        List<OrdersResponseDto> cancels = orderService.findByCustomerIdAndOrderStatus(customerId, OrderStatus.CANCELED);
 
-        assertThat(cancles.size()).isEqualTo(1);
+        assertThat(cancels.size()).isEqualTo(1);
     }
 
     @Test
@@ -192,7 +192,7 @@ class OrderServiceTest {
 
         orderService.updateShipment(ordersId, ShipmentStatus.SHIPPING);
 
-        List<OrdersResponseDto> all = orderService.findByCustomerIdAndOrderStatus(customerId, OrderStatus.ORDERED);
+        List<OrdersResponseDto> all = orderService.findByCustomerIdAndOrderStatus(customerId, OrderStatus.DELIVERED);
 
         assertThat(all.get(0).getShipment().getShipmentStatus()).isEqualTo(ShipmentStatus.SHIPPING);
     }
@@ -217,6 +217,6 @@ class OrderServiceTest {
 
         orderService.updateShipment(ordersId, ShipmentStatus.SHIPPING);
 
-        assertThatThrownBy(() -> orderService.updateCancled(ordersId)).isInstanceOf(OrderStatusEx.class);
+        assertThatThrownBy(() -> orderService.updateCanceled(ordersId)).isInstanceOf(OrderStatusEx.class);
     }
 }

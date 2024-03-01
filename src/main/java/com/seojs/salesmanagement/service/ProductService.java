@@ -1,6 +1,5 @@
 package com.seojs.salesmanagement.service;
 
-import com.seojs.salesmanagement.domain.category.Category;
 import com.seojs.salesmanagement.domain.product.Product;
 import com.seojs.salesmanagement.domain.product.ProductRepository;
 import com.seojs.salesmanagement.domain.product.dto.ProductResponseDto;
@@ -43,8 +42,8 @@ public class ProductService {
     }
 
     @Transactional
-    public List<ProductResponseDto> findByCategory(Category category) {
-        return productRepository.findByCategory(category).stream()
+    public List<ProductResponseDto> findByCategoryName(String categoryName) {
+        return productRepository.findByCategoryName(categoryName).stream()
                 .map(ProductResponseDto::new)
                 .collect(Collectors.toList());
     }

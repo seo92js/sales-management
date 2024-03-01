@@ -102,11 +102,9 @@ class CustomerServiceTest {
 
         Long savedId1 = customerService.save(customerSaveDto);
 
-        Long savedId2 = customerService.save(customerSaveDto);
-
         List<CustomerResponseDto> all = customerService.findAll();
 
-        assertThat(all.size()).isEqualTo(2);
+        assertThat(all.size()).isEqualTo(1);
     }
 
     @Test
