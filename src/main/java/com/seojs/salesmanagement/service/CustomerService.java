@@ -7,6 +7,7 @@ import com.seojs.salesmanagement.domain.customer.dto.CustomerSaveDto;
 import com.seojs.salesmanagement.exception.CustomerDupliacateEx;
 import com.seojs.salesmanagement.exception.CustomerNotFoundEx;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CustomerService {
     private final CustomerRepository customerRepository;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Transactional
     public Long save(CustomerSaveDto customerSaveDto) {
@@ -24,7 +26,7 @@ public class CustomerService {
 
         Customer customer = Customer.builder()
                 .loginId(customerSaveDto.getLoginId())
-                .password(customerSaveDto.getPassword())
+                .password(bCryptPasswordEncoder.encode(customerSaveDto.getPassword()))
                 .name(customerSaveDto.getName())
                 .email(customerSaveDto.getEmail())
                 .phoneNumber(customerSaveDto.getPhoneNumber())
