@@ -11,57 +11,57 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class ExRestControllerAdvice {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(CustomerDupliacateEx.class)
-    public String customerDupliacateEx(RuntimeException e) {
+    public ErrorResult customerDupliacateEx(RuntimeException e) {
         log.error("[exceptionHandler] ex", e);
-        return e.getMessage();
+        return new ErrorResult("CUSTOMER_DUPLICATE_EX", e.getMessage());
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(CustomerNotFoundEx.class)
-    public String customerNotFoundEx(RuntimeException e) {
+    public ErrorResult customerNotFoundEx(RuntimeException e) {
         log.error("[exceptionHandler] ex", e);
-        return e.getMessage();
+        return new ErrorResult("CUSTOMER_NOT_FOUND_EX", e.getMessage());
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(CategoryNotFoundEx.class)
-    public String categoryNotFoundEx(RuntimeException e) {
+    public ErrorResult categoryNotFoundEx(RuntimeException e) {
         log.error("[exceptionHandler] ex", e);
-        return e.getMessage();
+        return new ErrorResult("CATEGORY_NOT_FOUND_EX", e.getMessage());
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(NotInStockEx.class)
-    public String notInStockEx(RuntimeException e) {
+    public ErrorResult notInStockEx(RuntimeException e) {
         log.error("[exceptionHandler] ex", e);
-        return e.getMessage();
+        return new ErrorResult("NOT_IN_STOCK_EX", e.getMessage());
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(OrderNotFoundEx.class)
-    public String orderNotFoundEx(RuntimeException e) {
+    public ErrorResult orderNotFoundEx(RuntimeException e) {
         log.error("[exceptionHandler] ex", e);
-        return e.getMessage();
+        return new ErrorResult("ORDER_NOT_FOUND_EX", e.getMessage());
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(ProductDuplicateEx.class)
-    public String productDuplicateEx(RuntimeException e) {
+    public ErrorResult productDuplicateEx(RuntimeException e) {
         log.error("[exceptionHandler] ex", e);
-        return e.getMessage();
+        return new ErrorResult("PRODUCT_DUPLICATE_EX", e.getMessage());
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(ProductNotFoundEx.class)
-    public String productNotFoundEx(RuntimeException e) {
+    public ErrorResult productNotFoundEx(RuntimeException e) {
         log.error("[exceptionHandler] ex", e);
-        return e.getMessage();
+        return new ErrorResult("PRODUCT_NOT_FOUND_EX", e.getMessage());
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(RuntimeException.class)
-    public String runtime(RuntimeException e) {
+    public ErrorResult runtime(RuntimeException e) {
         log.error("[exceptionHandler] ex", e);
-        return e.getMessage();
+        return new ErrorResult("RUNTIME_EX", e.getMessage());
     }
 }

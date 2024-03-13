@@ -2,6 +2,8 @@ package com.seojs.salesmanagement.web;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.seojs.salesmanagement.config.auth.LoginDto;
+import com.seojs.salesmanagement.config.jwt.JwtProperties;
 import com.seojs.salesmanagement.domain.customer.Role;
 import com.seojs.salesmanagement.domain.customer.dto.CustomerSaveDto;
 import org.hamcrest.Matchers;
@@ -18,6 +20,8 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.UnsupportedEncodingException;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -56,9 +60,21 @@ class CustomerApiControllerTest {
                         .content(objectMapper.writeValueAsString(customerSaveDto)))
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
+        String loginUrl = "/login";
+
+        LoginDto loginDto = new LoginDto("loginId", "password");
+
+        MvcResult result = mvc.perform(post(loginUrl)
+                        .content(objectMapper.writeValueAsString(loginDto))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        String accessToken = JwtProperties.TOKEN_PREFIX + result.getResponse().getContentAsString();
+
         String getUrl = "/api/v1/customers";
 
-        mvc.perform(MockMvcRequestBuilders.get(getUrl))
+        mvc.perform(MockMvcRequestBuilders.get(getUrl)
+                        .header("Authorization", accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$", Matchers.hasSize(1)));
     }
@@ -89,11 +105,23 @@ class CustomerApiControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andReturn();
 
+        String loginUrl = "/login";
+
+        LoginDto loginDto = new LoginDto("loginId", "password");
+
+        MvcResult rst = mvc.perform(post(loginUrl)
+                        .content(objectMapper.writeValueAsString(loginDto))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        String accessToken = JwtProperties.TOKEN_PREFIX + rst.getResponse().getContentAsString();
+
         Long id = extractedId(result);
 
         String getUrl = "/api/v1/customer/" + id;
 
-        mvc.perform(MockMvcRequestBuilders.get(getUrl))
+        mvc.perform(MockMvcRequestBuilders.get(getUrl)
+                        .header("Authorization", accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.name", Matchers.is(name)))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.phoneNumber", Matchers.is(phoneNumber)))
@@ -127,9 +155,21 @@ class CustomerApiControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andReturn();
 
+        String loginUrl = "/login";
+
+        LoginDto loginDto = new LoginDto("loginId", "password");
+
+        MvcResult rst = mvc.perform(post(loginUrl)
+                        .content(objectMapper.writeValueAsString(loginDto))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        String accessToken = JwtProperties.TOKEN_PREFIX + rst.getResponse().getContentAsString();
+
         String getUrl = "/api/v1/customers";
 
-        mvc.perform(MockMvcRequestBuilders.get(getUrl))
+        mvc.perform(MockMvcRequestBuilders.get(getUrl)
+                        .header("Authorization", accessToken))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$", Matchers.hasSize(1)))
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].name", Matchers.is(name)))

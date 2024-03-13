@@ -1,11 +1,12 @@
 package com.seojs.salesmanagement.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.seojs.salesmanagement.config.auth.LoginDto;
+import com.seojs.salesmanagement.config.jwt.JwtProperties;
 import com.seojs.salesmanagement.domain.category.Category;
 import com.seojs.salesmanagement.domain.category.CategoryRepository;
-import com.seojs.salesmanagement.domain.customer.Customer;
-import com.seojs.salesmanagement.domain.customer.CustomerRepository;
 import com.seojs.salesmanagement.domain.customer.Role;
+import com.seojs.salesmanagement.domain.customer.dto.CustomerSaveDto;
 import com.seojs.salesmanagement.domain.orderproduct.dto.OrderProductSaveDto;
 import com.seojs.salesmanagement.domain.orders.OrderStatus;
 import com.seojs.salesmanagement.domain.orders.Orders;
@@ -14,6 +15,7 @@ import com.seojs.salesmanagement.domain.payment.PayMethod;
 import com.seojs.salesmanagement.domain.product.Product;
 import com.seojs.salesmanagement.domain.product.ProductRepository;
 import com.seojs.salesmanagement.domain.shipment.ShipmentStatus;
+import com.seojs.salesmanagement.service.CustomerService;
 import com.seojs.salesmanagement.service.OrderProductService;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,14 +23,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -43,7 +46,7 @@ class OrderApiControllerTest {
     ObjectMapper objectMapper;
 
     @Autowired
-    CustomerRepository customerRepository;
+    CustomerService customerService;
 
     @Autowired
     CategoryRepository categoryRepository;
@@ -61,9 +64,10 @@ class OrderApiControllerTest {
     Long categoryId;
     Long productId;
     Long orderProductId;
+    String accessToken;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         String loginId = "loginId";
         String password = "password";
         String name = "seo";
@@ -72,17 +76,28 @@ class OrderApiControllerTest {
         String address = "서울시 강서구 등촌동";
         Role role = Role.USER;
 
-        Customer customer = Customer.builder()
+        CustomerSaveDto customerSaveDto = CustomerSaveDto.builder()
                 .loginId(loginId)
                 .password(password)
+                .address(address)
                 .name(name)
                 .email(email)
-                .phoneNumber(phoneNumber)
-                .address(address)
                 .role(role)
+                .phoneNumber(phoneNumber)
                 .build();
 
-        customerId = customerRepository.save(customer).getId();
+        customerId = customerService.save(customerSaveDto);
+
+        String postUrl = "/login";
+
+        LoginDto loginDto = new LoginDto("loginId", "password");
+
+        MvcResult result = mvc.perform(post(postUrl)
+                        .content(objectMapper.writeValueAsString(loginDto))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        accessToken = JwtProperties.TOKEN_PREFIX + result.getResponse().getContentAsString();
 
         String categoryName = "의류";
 
@@ -125,7 +140,8 @@ class OrderApiControllerTest {
     void findByCustomerId() throws Exception {
         String getUrl = "/api/v1/orders/customer/" + customerId;
 
-        mvc.perform(get(getUrl))
+        mvc.perform(get(getUrl)
+                        .header("Authorization", accessToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", Matchers.hasSize(1)))
                 .andExpect(jsonPath("$[0].quantity", Matchers.is(1)));
@@ -135,7 +151,8 @@ class OrderApiControllerTest {
     void findByCustomerIdAndOrderStatus() throws Exception {
         String getUrl = "/api/v1/orders/customer/" + customerId + "/status/" + OrderStatus.BASKET;
 
-        mvc.perform(get(getUrl))
+        mvc.perform(get(getUrl)
+                        .header("Authorization", accessToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", Matchers.hasSize(1)))
                 .andExpect(jsonPath("$[0].quantity", Matchers.is(1)));
@@ -145,12 +162,14 @@ class OrderApiControllerTest {
     void updateCanceled() throws Exception {
         String patchUrl = "/api/v1/orders/cancel/" + orderProductId;
 
-        mvc.perform(patch(patchUrl))
+        mvc.perform(patch(patchUrl)
+                        .header("Authorization", accessToken))
                 .andExpect(status().isOk());
 
         String getUrl = "/api/v1/orders/customer/" + customerId + "/status/" + OrderStatus.CANCELED;
 
-        mvc.perform(get(getUrl))
+        mvc.perform(get(getUrl)
+                        .header("Authorization", accessToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", Matchers.hasSize(1)));
 
@@ -160,7 +179,8 @@ class OrderApiControllerTest {
     void updateOrdered() throws Exception {
         String patchUrl = "/api/v1/orders/" + orderProductId + "/payment/" + PayMethod.KAKAOPAY;
 
-        mvc.perform(patch(patchUrl))
+        mvc.perform(patch(patchUrl)
+                        .header("Authorization", accessToken))
                 .andExpect(status().isOk());
 
         List<Orders> all = ordersRepository.findAll();
@@ -172,7 +192,8 @@ class OrderApiControllerTest {
     void testUpdateOrdered() throws Exception {
         String patchUrl = "/api/v1/orders/" + orderProductId + "/shipment/" + ShipmentStatus.SHIPPING;
 
-        mvc.perform(patch(patchUrl))
+        mvc.perform(patch(patchUrl)
+                        .header("Authorization", accessToken))
                 .andExpect(status().isOk());
 
         List<Orders> all = ordersRepository.findAll();

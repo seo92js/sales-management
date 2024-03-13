@@ -2,10 +2,15 @@ package com.seojs.salesmanagement.web;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.seojs.salesmanagement.config.auth.LoginDto;
+import com.seojs.salesmanagement.config.jwt.JwtProperties;
 import com.seojs.salesmanagement.domain.category.Category;
 import com.seojs.salesmanagement.domain.category.CategoryRepository;
+import com.seojs.salesmanagement.domain.customer.Role;
+import com.seojs.salesmanagement.domain.customer.dto.CustomerSaveDto;
 import com.seojs.salesmanagement.domain.product.dto.ProductSaveDto;
 import com.seojs.salesmanagement.domain.product.dto.ProductUpdateDto;
+import com.seojs.salesmanagement.service.CustomerService;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,10 +43,46 @@ class ProductApiControllerTest {
     @Autowired
     CategoryRepository categoryRepository;
 
+    @Autowired
+    CustomerService customerService;
+
     Long categoryId;
 
+    String accessToken;
+
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
+        String loginId = "loginId";
+        String password = "password";
+        String name = "seo";
+        String email = "seojs@naver.com";
+        String phoneNumber = "010-1111-1111";
+        String address = "서울시 강서구 등촌동";
+        Role role = Role.USER;
+
+        CustomerSaveDto customerSaveDto = CustomerSaveDto.builder()
+                .loginId(loginId)
+                .password(password)
+                .address(address)
+                .name(name)
+                .email(email)
+                .role(role)
+                .phoneNumber(phoneNumber)
+                .build();
+
+        customerService.save(customerSaveDto);
+
+        String postUrl = "/login";
+
+        LoginDto loginDto = new LoginDto("loginId", "password");
+
+        MvcResult result = mvc.perform(post(postUrl)
+                        .content(objectMapper.writeValueAsString(loginDto))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        accessToken = JwtProperties.TOKEN_PREFIX + result.getResponse().getContentAsString();
+
         String categoryName = "의류";
 
         Category category = Category.builder()
@@ -70,13 +111,15 @@ class ProductApiControllerTest {
                 .build();
 
         mvc.perform(post(postUrl)
+                        .header("Authorization", accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(productSaveDto)))
                 .andExpect(status().isOk());
 
         String getUrl = "/api/v1/products";
 
-        mvc.perform(get(getUrl))
+        mvc.perform(get(getUrl)
+                        .header("Authorization", accessToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", Matchers.hasSize(1)));
     }
@@ -100,6 +143,7 @@ class ProductApiControllerTest {
                 .build();
 
         MvcResult result = mvc.perform(post(postUrl)
+                        .header("Authorization", accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(productSaveDto)))
                 .andExpect(status().isOk()).andReturn();
@@ -108,7 +152,8 @@ class ProductApiControllerTest {
 
         String getUrl = "/api/v1/product/" + id;
 
-        mvc.perform(get(getUrl))
+        mvc.perform(get(getUrl)
+                        .header("Authorization", accessToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.productName", Matchers.is(productName)))
                 .andExpect(jsonPath("$.quantity", Matchers.is(quantity)))
@@ -134,13 +179,15 @@ class ProductApiControllerTest {
                 .build();
 
         mvc.perform(post(postUrl)
+                        .header("Authorization", accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(productSaveDto)))
                 .andExpect(status().isOk()).andReturn();
 
         String getUrl = "/api/v1/product/category/" + category.getName();
 
-        mvc.perform(get(getUrl))
+        mvc.perform(get(getUrl)
+                        .header("Authorization", accessToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].productName", Matchers.is(productName)))
                 .andExpect(jsonPath("$[0].quantity", Matchers.is(quantity)))
@@ -166,13 +213,15 @@ class ProductApiControllerTest {
                 .build();
 
         mvc.perform(post(postUrl)
+                        .header("Authorization", accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(productSaveDto)))
                 .andExpect(status().isOk()).andReturn();
 
         String getUrl = "/api/v1/products";
 
-        mvc.perform(get(getUrl))
+        mvc.perform(get(getUrl)
+                        .header("Authorization", accessToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].productName", Matchers.is(productName)))
                 .andExpect(jsonPath("$[0].quantity", Matchers.is(quantity)))
@@ -198,6 +247,7 @@ class ProductApiControllerTest {
                 .build();
 
         MvcResult result = mvc.perform(post(postUrl)
+                        .header("Authorization", accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(productSaveDto)))
                 .andExpect(status().isOk()).andReturn();
@@ -206,12 +256,14 @@ class ProductApiControllerTest {
 
         String deleteUrl = "/api/v1/product/" + id;
 
-        mvc.perform(MockMvcRequestBuilders.delete(deleteUrl))
+        mvc.perform(MockMvcRequestBuilders.delete(deleteUrl)
+                        .header("Authorization", accessToken))
                 .andExpect(status().isOk());
 
         String getUrl = "/api/v1/products";
 
-        mvc.perform(get(getUrl))
+        mvc.perform(get(getUrl)
+                        .header("Authorization", accessToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", Matchers.hasSize(0)));
     }
@@ -235,6 +287,7 @@ class ProductApiControllerTest {
                 .build();
 
         MvcResult result = mvc.perform(post(postUrl)
+                        .header("Authorization", accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(productSaveDto)))
                 .andExpect(status().isOk()).andReturn();
@@ -249,13 +302,15 @@ class ProductApiControllerTest {
                 .build();
 
         mvc.perform(patch(patchUrl)
-                .content(objectMapper.writeValueAsBytes(productUpdateDto))
+                        .header("Authorization", accessToken)
+                        .content(objectMapper.writeValueAsBytes(productUpdateDto))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
         String getUrl = "/api/v1/products";
 
-        mvc.perform(get(getUrl))
+        mvc.perform(get(getUrl)
+                        .header("Authorization", accessToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].price", Matchers.is(20000)))
                 .andExpect(jsonPath("$[0].quantity", Matchers.is(10)))

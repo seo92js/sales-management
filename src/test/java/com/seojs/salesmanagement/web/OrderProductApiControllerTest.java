@@ -1,16 +1,18 @@
 package com.seojs.salesmanagement.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.seojs.salesmanagement.config.auth.LoginDto;
+import com.seojs.salesmanagement.config.jwt.JwtProperties;
 import com.seojs.salesmanagement.domain.category.Category;
 import com.seojs.salesmanagement.domain.category.CategoryRepository;
-import com.seojs.salesmanagement.domain.customer.Customer;
-import com.seojs.salesmanagement.domain.customer.CustomerRepository;
 import com.seojs.salesmanagement.domain.customer.Role;
+import com.seojs.salesmanagement.domain.customer.dto.CustomerSaveDto;
 import com.seojs.salesmanagement.domain.orderproduct.dto.OrderProductSaveDto;
 import com.seojs.salesmanagement.domain.orders.Orders;
 import com.seojs.salesmanagement.domain.orders.OrdersRepository;
 import com.seojs.salesmanagement.domain.product.Product;
 import com.seojs.salesmanagement.domain.product.ProductRepository;
+import com.seojs.salesmanagement.service.CustomerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,7 +40,7 @@ class OrderProductApiControllerTest {
     MockMvc mvc;
 
     @Autowired
-    CustomerRepository customerRepository;
+    CustomerService customerService;
 
     @Autowired
     CategoryRepository categoryRepository;
@@ -51,9 +54,10 @@ class OrderProductApiControllerTest {
     Long customerId;
     Long categoryId;
     Long productId;
+    String accessToken;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         String loginId = "loginId";
         String password = "password";
         String name = "seo";
@@ -62,17 +66,28 @@ class OrderProductApiControllerTest {
         String address = "서울시 강서구 등촌동";
         Role role = Role.USER;
 
-        Customer customer = Customer.builder()
+        CustomerSaveDto customerSaveDto = CustomerSaveDto.builder()
                 .loginId(loginId)
                 .password(password)
+                .address(address)
                 .name(name)
                 .email(email)
-                .phoneNumber(phoneNumber)
-                .address(address)
                 .role(role)
+                .phoneNumber(phoneNumber)
                 .build();
 
-        customerId = customerRepository.save(customer).getId();
+        customerId = customerService.save(customerSaveDto);
+
+        String postUrl = "/login";
+
+        LoginDto loginDto = new LoginDto("loginId", "password");
+
+        MvcResult result = mvc.perform(post(postUrl)
+                        .content(objectMapper.writeValueAsString(loginDto))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        accessToken = JwtProperties.TOKEN_PREFIX + result.getResponse().getContentAsString();
 
         String categoryName = "의류";
 
@@ -110,6 +125,7 @@ class OrderProductApiControllerTest {
                 .build();
 
         mvc.perform(post(postUrl)
+                        .header("Authorization", accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(orderProductSaveDto)))
                 .andExpect(MockMvcResultMatchers.status().isOk());

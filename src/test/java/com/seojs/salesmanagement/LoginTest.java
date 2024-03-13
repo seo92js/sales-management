@@ -1,5 +1,7 @@
 package com.seojs.salesmanagement;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.seojs.salesmanagement.config.auth.LoginDto;
 import com.seojs.salesmanagement.domain.customer.Role;
 import com.seojs.salesmanagement.domain.customer.dto.CustomerSaveDto;
 import com.seojs.salesmanagement.service.CustomerService;
@@ -8,13 +10,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestBuilders.formLogin;
-import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
-import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.unauthenticated;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -25,6 +27,9 @@ public class LoginTest {
 
     @Autowired
     CustomerService customerService;
+
+    @Autowired
+    ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() {
@@ -53,20 +58,25 @@ public class LoginTest {
     void login() throws Exception {
         String postUrl = "/login";
 
-        mvc.perform(formLogin(postUrl)
-                        .user("loginId")
-                        .password("password"))
-                .andExpect(redirectedUrl("/"))
-                .andExpect(authenticated());
+        LoginDto loginDto = new LoginDto("loginId", "password");
+
+        mvc.perform(post(postUrl)
+                .content(objectMapper.writeValueAsString(loginDto))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(header().exists("Authorization"));
     }
 
     @Test
     void login_실패() throws Exception {
         String postUrl = "/login";
 
-        mvc.perform(formLogin(postUrl)
-                .user("loginId")
-                .password("pass"))
-                .andExpect(unauthenticated());
+        LoginDto loginDto = new LoginDto("loginId", "passwor");
+
+        mvc.perform(post(postUrl)
+                        .content(objectMapper.writeValueAsString(loginDto))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized())
+                .andExpect(header().doesNotExist("Authorization"));
     }
 }

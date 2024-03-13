@@ -7,12 +7,12 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 public class LoginDto {
-    private String username; // Customer 기준 loginId
+    private String loginId; // Customer 기준 loginId
     private String password;
 
     @Builder
-    public LoginDto(String username, String password) {
-        this.username = username;
+    public LoginDto(String loginId, String password) {
+        this.loginId = loginId;
         this.password = password;
     }
 }
